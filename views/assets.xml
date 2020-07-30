@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2020 Pafnow -->
+<odoo>
+    <template id="assets_backend" name="web.tree.paste" inherit_id="web.assets_backend">
+        <xpath expr="." position="inside">
+            <script type="text/javascript" src="/web_tree_paste/static/src/js/web_tree_paste.js"></script>
+        </xpath>
+    </template>
+</odoo>
