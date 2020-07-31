@@ -66,7 +66,7 @@ odoo.define('web_tree_paste', function (require) {
         _onMouseup: function() {
             var self = this;
             var logString = "";
-            var inputArray = ["Item1\tName1", "Item2\tName2", "Item3\tName3"];
+            var inputArray = ["Item1\t\tName1", "Item2\t\tName2", "Item3\t\tName3"];
             //TODO: Get array from clipboard
 
             //TODO: Disable buttons
@@ -78,7 +78,20 @@ odoo.define('web_tree_paste', function (require) {
                         position: self.editable,
                     }).then(function(r) {
                         recordID = r;
-                        self.model.applyDefaultValues(recordID, {"code": "Test2"+inputLine, "name": "Damien"+inputLine})
+
+                        //Create the object to be added
+                        var v = inputLine.split("\t");
+                        var k = self.renderer.columns.map(function(e) { return e.attrs.name; });
+                        var arr = {};
+                        for(var i = 0; i < k.length; i++) {
+                            arr[k[i]] = v[i];
+                        }
+
+                        //TODO: Add support for Many2one field
+                        // - find all Many2one field, and act if value is not yet an integer
+                        // - try to find the related ID using model queries on name, code, etc...
+
+                        self.model.applyDefaultValues(recordID, arr);
                         return self.model.save(recordID)
                     }).then(function(a) {
 
@@ -90,11 +103,18 @@ odoo.define('web_tree_paste', function (require) {
                             //return e
                     })
                 })).then(function() {
-                    var err = {message: _t("Some lines raised an error when trying to paste in this list."), traceback: logString.trim()};
-                    var dialog = new ErrorDialogTreePaste(this,{
-                        title: _t("Copy/Paste Errors"),
-                    },err).open();
-
+                    if (logString.trim()) {
+                        var err = {
+                            message: _t("Some lines raised an error when trying to paste in this list."),
+                            traceback: logString.trim()
+                        };
+                        var dialog = new ErrorDialogTreePaste(this,{
+                            title: _t("Copy/Paste Errors"),
+                        },err).open();
+                    } else {
+                        self.do_notify(_t("Success"), _t("Clipboard records have been added successfully!"));
+                    }
+                    //Refresh the tree view
                     var state = self.model.get(self.handle);
                     self.renderer.updateState(state, {
                         keepWidths: true
