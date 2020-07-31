@@ -16,6 +16,7 @@ odoo.define('web_tree_paste', function (require) {
         var $textarea = $('<textarea/>', {
             id: id,
             class: 'custom-textarea',
+            rows: "15"
         });
         if (options && options.prop) {
             $textarea.prop(options.prop);
@@ -112,20 +113,16 @@ odoo.define('web_tree_paste', function (require) {
         },
         _onMouseup: function() {
             var self = this
-            Dialog.inputText(this, "message", { },
-                function() {
-                    self._stringToGrid(this.$el.find('textarea')[0].value);
-                }, function() {
-                    alert('Cancel');
-                });
+            Dialog.inputText(this, "Please copy data from Excel and paste it in the field below.", { }, function() {
+                self._stringToGrid(this.$el.find('textarea')[0].value);
+            });
         },
         _stringToGrid: function(inputString) {
             var self = this;
             var logString = "";
             var inputArray = inputString.trim().split("\n");
 
-            //TODO: Disable buttons
-
+            this._disableButtons();
             this.renderer.unselectRow().then(function() {
                 Promise.all(inputArray.map(function(inputLine) {
                     var recordID;
@@ -175,9 +172,7 @@ odoo.define('web_tree_paste', function (require) {
                         keepWidths: true
                     })
                 });
-            });
-
-            //TODO: Enable buttons
+            }).then(this._enableButtons.bind(this)).guardedCatch(this._enableButtons.bind(this));
         }
     });
 });
