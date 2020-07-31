@@ -8,11 +8,58 @@ odoo.define('web_tree_paste', function (require) {
 
     var core = require('web.core');
     var ListController = require('web.ListController');
+    var Dialog = require('web.Dialog');
     var _t = core._t;
+
+    Dialog.inputText = function(owner, message, options, ok_callback, cancel_callback) {
+        var id = _.uniqueId('textarea-');
+        var $textarea = $('<textarea/>', {
+            id: id,
+            class: 'custom-textarea',
+        });
+        if (options && options.prop) {
+            $textarea.prop(options.prop);
+        }
+
+        var $content;
+        if (options && options.$content) {
+            $content = options.$content;
+            delete options.$content;
+        } else {
+            $content = $('<div>', { text: message });
+        }
+        $content = $('<main/>', { role: 'alert' }).append($content, $textarea);
+
+        var title;
+        if (options && options.title) {
+            title = options.title;
+        } else {
+            title = "Data Entry";
+        }
+
+        var buttons = [{
+            text: _t("Ok"),
+            classes: 'btn-primary o_safe_confirm_button',
+            close: true,
+            click: ok_callback,
+        }, {
+            text: _t("Cancel"),
+            close: true,
+            click: cancel_callback
+        }];
+        var dialog = new Dialog(owner,_.extend({
+            size: 'medium',
+            buttons: buttons,
+            $content: $content,
+            title: _t(title),
+            onForceClose: options && (options.onForceClose || cancel_callback),
+        }, options));
+        return dialog.open();
+    }
 
     var ErrorDialogTreePaste = ErrorDialog.extend({
         xmlDependencies: (ErrorDialog.prototype.xmlDependencies || []).concat(
-            ['/web_tree_paste/static/src/xml/web_tree_paste_error_dialog.xml']
+            ['/web_tree_paste/static/src/xml/web_tree_paste_dialog.xml']
         ),
         template: "CrashManager.WebTreePasteError",
         init: function(parent, options, error) {
@@ -64,10 +111,18 @@ odoo.define('web_tree_paste', function (require) {
             this.$buttons.on('mouseup', '.btn_tree_paste', this._onMouseup.bind(this));
         },
         _onMouseup: function() {
+            var self = this
+            Dialog.inputText(this, "message", { },
+                function() {
+                    self._stringToGrid(this.$el.find('textarea')[0].value);
+                }, function() {
+                    alert('Cancel');
+                });
+        },
+        _stringToGrid: function(inputString) {
             var self = this;
             var logString = "";
-            var inputArray = ["Item1\t\tName1", "Item2\t\tName2", "Item3\t\tName3"];
-            //TODO: Get array from clipboard
+            var inputArray = inputString.trim().split("\n");
 
             //TODO: Disable buttons
 
