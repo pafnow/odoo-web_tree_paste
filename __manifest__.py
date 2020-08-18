@@ -3,7 +3,7 @@
     'name': 'Web Tree View Paste',
     'version': '13.0.1.0.0',
     'depends': ['web'],
-    'author': 'Pafnow',
+    'author': 'MRM, Pafnow',
     'category': 'Technical Settings',
     'description': 'Tree view enhancement to support paste from clipboard.',
     'data': [
